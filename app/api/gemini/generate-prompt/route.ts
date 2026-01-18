@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         messages: [
           {
             role: "system",
-            content: `You are an expert at creating professional call center agent prompts for STC (Saudi Telecom Company - الاتصالات السعودية).
+            content: `You are an expert at creating professional call center agent prompts for STC (Saudi Telecom Company).
 
 You will create a detailed, professional system prompt for an AI agent named Omar who works for STC.
 
