@@ -420,15 +420,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const scenario = getScenarioById(body.scenarioId)
+    // For custom scenarios, the client should send the scenario object with systemPrompt
+    let scenario = body.scenario || getScenarioById(body.scenarioId)
     if (!scenario) {
       return NextResponse.json({ error: "Invalid scenario selected" }, { status: 400 })
     }
 
-    const systemPrompt =
-      body.language === "ar"
-        ? buildArabicSystemPrompt(scenario, body.variables)
-        : buildEnglishSystemPrompt(scenario, body.variables)
+    let systemPrompt: string
+    // If it's a custom scenario with its own systemPrompt, use it directly
+    if (scenario.isCustom && scenario.systemPrompt) {
+      systemPrompt = scenario.systemPrompt
+      // Replace all variables in the prompt
+      Object.entries(body.variables).forEach(([key, value]) => {
+        const placeholder = `{${key}}`
+        systemPrompt = systemPrompt.replaceAll(placeholder, value || (body.language === "ar" ? "غير متوفر" : "Not available"))
+      })
+    } else {
+      // Use built-in scenario prompts
+      systemPrompt =
+        body.language === "ar"
+          ? buildArabicSystemPrompt(scenario, body.variables)
+          : buildEnglishSystemPrompt(scenario, body.variables)
+    }
 
     console.log("[v0] Creating call with scenario:", scenario.name)
     console.log("[v0] Language:", body.language)

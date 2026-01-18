@@ -112,6 +112,7 @@ export default function CallsPage() {
         },
         body: JSON.stringify({
           scenarioId: selectedScenario,
+          scenario: scenario?.isCustom ? scenario : undefined, // Send full scenario object for custom templates
           language: selectedLanguage,
           customer: {
             name: formData.customerName,
