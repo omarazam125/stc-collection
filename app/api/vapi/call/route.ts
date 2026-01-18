@@ -397,13 +397,7 @@ Remember: Your goal is to solve their problem and ensure a positive experience w
 
 export async function POST(request: NextRequest) {
   try {
-    let body
-    try {
-      body = await request.json()
-    } catch (jsonError) {
-      console.error("[v0] Failed to parse request body:", jsonError)
-      return NextResponse.json({ error: "Invalid JSON in request body" }, { status: 400 })
-    }
+    const body = await request.json()
 
     const apiKey = process.env.VAPI_API_KEY
     const baseUrl = process.env.VAPI_BASE_URL || "https://api.vapi.ai"
@@ -537,19 +531,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `API Error: ${response.status} - ${errorText}` }, { status: response.status })
     }
 
-    let data
-    try {
-      const text = await response.text()
-      if (!text || text.trim() === "") {
-        console.error("[v0] Empty response from VAPI API")
-        return NextResponse.json({ error: "Empty response from VAPI API" }, { status: 500 })
-      }
-      data = JSON.parse(text)
-    } catch (jsonError) {
-      console.error("[v0] Failed to parse VAPI response:", jsonError)
-      return NextResponse.json({ error: "Invalid JSON response from VAPI API" }, { status: 500 })
-    }
-
+    const data = await response.json()
     console.log("[v0] Call Created:", data)
 
     return NextResponse.json(data)
@@ -590,19 +572,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: `VAPI API Error: ${response.status}` }, { status: response.status })
     }
 
-    let data
-    try {
-      const text = await response.text()
-      if (!text || text.trim() === "") {
-        console.error("[v0] Empty response from VAPI API")
-        return NextResponse.json({ error: "Empty response from VAPI API" }, { status: 500 })
-      }
-      data = JSON.parse(text)
-    } catch (jsonError) {
-      console.error("[v0] Failed to parse VAPI response:", jsonError)
-      return NextResponse.json({ error: "Invalid JSON response from VAPI API" }, { status: 500 })
-    }
-
+    const data = await response.json()
     console.log("[v0] VAPI Calls Fetched:", data)
 
     return NextResponse.json(data)

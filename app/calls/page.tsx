@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Phone, PhoneOff, Volume2, Mic, MicOff, Pause, Clock, User, Loader2, Languages } from "lucide-react"
-import { useState, useEffect } from "react"
-import { getAllScenarios } from "@/lib/call-scenarios"
+import { useState, useEffect, useMemo } from "react"
+import { getAllScenarios, extractDynamicVariables } from "@/lib/call-scenarios"
 
 interface LiveCall {
   id: string
@@ -44,42 +44,46 @@ export default function CallsPage() {
     issueDescription: "",
     notes: "",
   })
+  const [customVariables, setCustomVariables] = useState<Record<string, string>>({})
+
+  const scenarios = getAllScenarios()
+  const scenario = scenarios.find((s) => s.id === selectedScenario)
+
+  // Extract dynamic variables for custom templates
+  const dynamicVariables = useMemo(() => {
+    if (!scenario?.isCustom) return []
+    return extractDynamicVariables(scenario.systemPrompt)
+  }, [scenario])
 
   useEffect(() => {
     async function fetchCalls() {
       try {
         const response = await fetch("/api/vapi/calls?limit=50")
         if (response.ok) {
-          try {
-            const calls = await response.json()
+          const calls = await response.json()
 
-            // Transform VAPI calls to our format
-            const transformedCalls = calls
-              .filter((call: any) => call.status === "in-progress" || call.status === "ringing")
-              .map((call: any) => {
-                const startTime = new Date(call.startedAt)
-                const now = new Date()
-                const durationMs = now.getTime() - startTime.getTime()
-                const minutes = Math.floor(durationMs / 60000)
-                const seconds = Math.floor((durationMs % 60000) / 1000)
+          // Transform VAPI calls to our format
+          const transformedCalls = calls
+            .filter((call: any) => call.status === "in-progress" || call.status === "ringing")
+            .map((call: any) => {
+              const startTime = new Date(call.startedAt)
+              const now = new Date()
+              const durationMs = now.getTime() - startTime.getTime()
+              const minutes = Math.floor(durationMs / 60000)
+              const seconds = Math.floor((durationMs % 60000) / 1000)
 
-                return {
-                  id: call.id,
-                  customerName: call.customer?.name || "Unknown",
-                  phoneNumber: call.customer?.number || call.phoneNumber?.number || "N/A",
-                  status: call.status,
-                  duration: `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
-                  startedAt: call.startedAt,
-                  endedAt: call.endedAt,
-                }
-              })
+              return {
+                id: call.id,
+                customerName: call.customer?.name || "Unknown",
+                phoneNumber: call.customer?.number || call.phoneNumber?.number || "N/A",
+                status: call.status,
+                duration: `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
+                startedAt: call.startedAt,
+                endedAt: call.endedAt,
+              }
+            })
 
-            setLiveCalls(transformedCalls)
-          } catch (jsonError) {
-            console.error("[v0] Error parsing calls JSON:", jsonError)
-          }
-        } else {
-          console.error("[v0] Failed to fetch calls:", response.status)
+          setLiveCalls(transformedCalls)
         }
       } catch (error) {
         console.error("[v0] Error fetching calls:", error)
@@ -114,58 +118,55 @@ export default function CallsPage() {
             phoneNumber: formData.phoneNumber,
             email: formData.customerEmail,
           },
-          variables: {
-            customer_name: formData.customerName,
-            phone_number: formData.phoneNumber,
-            customer_email: formData.customerEmail,
-            account_balance: formData.accountBalance,
-            due_date: formData.dueDate,
-            inquiry_type: formData.inquiryType,
-            current_plan: formData.currentPlan,
-            recommended_upgrade: formData.recommendedUpgrade,
-            issue_type: formData.issueType,
-            issue_description: formData.issueDescription,
-            notes: formData.notes,
-          },
+          variables: scenario?.isCustom
+            ? {
+                customer_name: formData.customerName,
+                phone_number: formData.phoneNumber,
+                customer_email: formData.customerEmail,
+                ...customVariables,
+              }
+            : {
+                customer_name: formData.customerName,
+                phone_number: formData.phoneNumber,
+                customer_email: formData.customerEmail,
+                account_balance: formData.accountBalance,
+                due_date: formData.dueDate,
+                inquiry_type: formData.inquiryType,
+                current_plan: formData.currentPlan,
+                recommended_upgrade: formData.recommendedUpgrade,
+                issue_type: formData.issueType,
+                issue_description: formData.issueDescription,
+                notes: formData.notes,
+              },
         }),
       })
 
       console.log("[v0] Call response status:", response.status)
 
       if (response.ok) {
-        try {
-          const data = await response.json()
-          console.log("[v0] Call initiated successfully:", data)
-          setIsDialogOpen(false)
-          setSelectedScenario("")
-          setSelectedLanguage("en")
-          setFormData({
-            customerName: "",
-            phoneNumber: "",
-            customerEmail: "",
-            accountBalance: "",
-            dueDate: "",
-            inquiryType: "",
-            currentPlan: "",
-            recommendedUpgrade: "",
-            issueType: "",
-            issueDescription: "",
-            notes: "",
-          })
-        } catch (jsonError) {
-          console.log("[v0] Error parsing call response:", jsonError)
-          setCallError("Failed to parse server response")
-        }
+        const data = await response.json()
+        console.log("[v0] Call initiated successfully:", data)
+        setIsDialogOpen(false)
+        setSelectedScenario("")
+        setSelectedLanguage("en")
+        setFormData({
+          customerName: "",
+          phoneNumber: "",
+          customerEmail: "",
+          accountBalance: "",
+          dueDate: "",
+          inquiryType: "",
+          currentPlan: "",
+          recommendedUpgrade: "",
+          issueType: "",
+          issueDescription: "",
+          notes: "",
+        })
+        setCustomVariables({})
       } else {
-        try {
-          const errorData = await response.json()
-          console.log("[v0] Call error:", errorData)
-          setCallError(errorData.error || "Failed to initiate call")
-        } catch (jsonError) {
-          const errorText = await response.text()
-          console.log("[v0] Call error (text):", errorText)
-          setCallError(errorText || "Failed to initiate call")
-        }
+        const errorData = await response.json()
+        console.log("[v0] Call error:", errorData)
+        setCallError(errorData.error || "Failed to initiate call")
       }
     } catch (error) {
       console.log("[v0] Call exception:", error)
@@ -174,9 +175,6 @@ export default function CallsPage() {
       setIsCallLoading(false)
     }
   }
-
-  const scenarios = getAllScenarios()
-  const scenario = scenarios.find((s) => s.id === selectedScenario)
 
   return (
     <div className="flex h-screen flex-col bg-background">
@@ -416,6 +414,33 @@ export default function CallsPage() {
                             onChange={(e) => setFormData({ ...formData, issueDescription: e.target.value })}
                           />
                         </div>
+                      </>
+                    )}
+
+                    {/* Dynamic Variables for Custom Templates */}
+                    {scenario?.isCustom && dynamicVariables.length > 0 && (
+                      <>
+                        <div className="pt-4 border-t border-border">
+                          <p className="text-sm font-medium text-foreground mb-3">Custom Template Variables</p>
+                        </div>
+                        {dynamicVariables
+                          .filter((v) => !["customer_name", "phone_number", "customer_email"].includes(v))
+                          .map((variable) => (
+                            <div key={variable}>
+                              <Label htmlFor={variable} className="font-sans text-sm font-medium">
+                                {variable.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())}
+                              </Label>
+                              <Input
+                                id={variable}
+                                placeholder={`Enter ${variable.replace(/_/g, " ")}`}
+                                className="mt-1.5 font-sans"
+                                value={customVariables[variable] || ""}
+                                onChange={(e) =>
+                                  setCustomVariables({ ...customVariables, [variable]: e.target.value })
+                                }
+                              />
+                            </div>
+                          ))}
                       </>
                     )}
                   </div>

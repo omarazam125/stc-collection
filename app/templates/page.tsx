@@ -45,13 +45,14 @@ export default function TemplatesPage() {
       })
 
       if (response.ok) {
-        try {
-          const data = await response.json()
-          setNewTemplate({ ...newTemplate, systemPrompt: data.prompt })
-        } catch (jsonError) {
-          console.error("[v0] Error parsing AI response:", jsonError)
-          alert("Failed to parse AI-generated prompt")
-        }
+        const data = await response.json()
+        // Auto-fill the prompt and detected dynamic variables
+        setNewTemplate({
+          ...newTemplate,
+          systemPrompt: data.prompt,
+          requiredFields: data.requiredFields?.join(", ") || newTemplate.requiredFields,
+          optionalFields: data.optionalFields?.join(", ") || newTemplate.optionalFields,
+        })
       } else {
         alert("Failed to generate prompt with AI")
       }

@@ -29,34 +29,28 @@ export default function DashboardPage() {
       try {
         const response = await fetch("/api/vapi/calls?limit=100")
         if (response.ok) {
-          try {
-            const calls = await response.json()
+          const calls = await response.json()
 
-            // Calculate real stats from VAPI data
-            const totalCalls = calls.length
-            const activeCalls = calls.filter((call: any) => call.status === "in-progress").length
-            const completedCalls = calls.filter((call: any) => call.status === "ended")
+          // Calculate real stats from VAPI data
+          const totalCalls = calls.length
+          const activeCalls = calls.filter((call: any) => call.status === "in-progress").length
+          const completedCalls = calls.filter((call: any) => call.status === "ended")
 
-            // Calculate average duration
-            const totalDuration = completedCalls.reduce((sum: number, call: any) => {
-              return sum + (call.endedAt ? new Date(call.endedAt).getTime() - new Date(call.startedAt).getTime() : 0)
-            }, 0)
-            const avgDurationMs = completedCalls.length > 0 ? totalDuration / completedCalls.length : 0
-            const avgMinutes = Math.floor(avgDurationMs / 60000)
-            const avgSeconds = Math.floor((avgDurationMs % 60000) / 1000)
+          // Calculate average duration
+          const totalDuration = completedCalls.reduce((sum: number, call: any) => {
+            return sum + (call.endedAt ? new Date(call.endedAt).getTime() - new Date(call.startedAt).getTime() : 0)
+          }, 0)
+          const avgDurationMs = completedCalls.length > 0 ? totalDuration / completedCalls.length : 0
+          const avgMinutes = Math.floor(avgDurationMs / 60000)
+          const avgSeconds = Math.floor((avgDurationMs % 60000) / 1000)
 
-            setStats({
-              totalCalls,
-              activeCalls,
-              avgDuration: `${avgMinutes}:${avgSeconds.toString().padStart(2, "0")}`,
-              successRate:
-                completedCalls.length > 0 ? `${((completedCalls.length / totalCalls) * 100).toFixed(1)}%` : "0%",
-            })
-          } catch (jsonError) {
-            console.error("[v0] Error parsing stats JSON:", jsonError)
-          }
-        } else {
-          console.error("[v0] Failed to fetch stats:", response.status)
+          setStats({
+            totalCalls,
+            activeCalls,
+            avgDuration: `${avgMinutes}:${avgSeconds.toString().padStart(2, "0")}`,
+            successRate:
+              completedCalls.length > 0 ? `${((completedCalls.length / totalCalls) * 100).toFixed(1)}%` : "0%",
+          })
         }
       } catch (error) {
         console.error("[v0] Error fetching stats:", error)

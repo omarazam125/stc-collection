@@ -2,14 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {
-    let body
-    try {
-      body = await request.json()
-    } catch (jsonError) {
-      console.error("[v0] Failed to parse webhook body:", jsonError)
-      return NextResponse.json({ error: "Invalid JSON in webhook payload" }, { status: 400 })
-    }
-
+    const body = await request.json()
     const { message } = body
 
     console.log("[v0] Webhook received message type:", message?.type)

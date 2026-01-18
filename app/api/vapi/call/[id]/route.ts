@@ -18,14 +18,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
     })
 
     if (!response.ok) {
-      let errorMessage = "Failed to fetch call details"
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
-      } catch {
-        errorMessage = (await response.text()) || errorMessage
-      }
-      return NextResponse.json({ error: errorMessage }, { status: response.status })
+      const errorData = await response.json()
+      return NextResponse.json(
+        { error: errorData.message || "Failed to fetch call details" },
+        { status: response.status },
+      )
     }
 
     const callDetails = await response.json()

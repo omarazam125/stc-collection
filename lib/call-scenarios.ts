@@ -5,8 +5,20 @@ export interface CallScenario {
   systemPrompt: string
   requiredFields: string[]
   optionalFields: string[]
+  dynamicVariables?: string[] // List of all {variable_name} placeholders in the prompt
   isCustom?: boolean
   createdAt?: string
+}
+
+// Extract dynamic variables from a prompt
+export function extractDynamicVariables(prompt: string): string[] {
+  const variableRegex = /\{([a-z_]+)\}/g
+  const matches = prompt.matchAll(variableRegex)
+  const variablesSet = new Set<string>()
+  for (const match of matches) {
+    variablesSet.add(match[1])
+  }
+  return Array.from(variablesSet)
 }
 
 export const callScenarios: CallScenario[] = [
@@ -233,8 +245,11 @@ export function buildSystemPrompt(scenario: CallScenario, variables: Record<stri
 
 export function saveCustomScenario(scenario: CallScenario): void {
   const customScenarios = getCustomScenarios()
+  // Extract dynamic variables from the prompt
+  const dynamicVariables = extractDynamicVariables(scenario.systemPrompt)
   customScenarios.push({
     ...scenario,
+    dynamicVariables,
     isCustom: true,
     createdAt: new Date().toISOString(),
   })

@@ -35,35 +35,29 @@ export default function CallLogsPage() {
       try {
         const response = await fetch("/api/vapi/calls?limit=100")
         if (response.ok) {
-          try {
-            const calls = await response.json()
+          const calls = await response.json()
 
-            // Transform VAPI calls to our format
-            const transformedLogs = calls.map((call: any) => {
-              const startTime = new Date(call.startedAt || call.createdAt)
-              const endTime = call.endedAt ? new Date(call.endedAt) : null
-              const durationMs = endTime ? endTime.getTime() - startTime.getTime() : 0
-              const minutes = Math.floor(durationMs / 60000)
-              const seconds = Math.floor((durationMs % 60000) / 1000)
+          // Transform VAPI calls to our format
+          const transformedLogs = calls.map((call: any) => {
+            const startTime = new Date(call.startedAt || call.createdAt)
+            const endTime = call.endedAt ? new Date(call.endedAt) : null
+            const durationMs = endTime ? endTime.getTime() - startTime.getTime() : 0
+            const minutes = Math.floor(durationMs / 60000)
+            const seconds = Math.floor((durationMs % 60000) / 1000)
 
-              return {
-                id: call.id,
-                customerName: call.customer?.name || "Unknown",
-                phoneNumber: call.customer?.number || call.phoneNumber?.number || "N/A",
-                date: startTime.toISOString().split("T")[0],
-                time: startTime.toTimeString().slice(0, 5),
-                duration: `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
-                status: call.status || "unknown",
-                type: call.type || "outbound",
-              }
-            })
+            return {
+              id: call.id,
+              customerName: call.customer?.name || "Unknown",
+              phoneNumber: call.customer?.number || call.phoneNumber?.number || "N/A",
+              date: startTime.toISOString().split("T")[0],
+              time: startTime.toTimeString().slice(0, 5),
+              duration: `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`,
+              status: call.status || "unknown",
+              type: call.type || "outbound",
+            }
+          })
 
-            setCallLogs(transformedLogs)
-          } catch (jsonError) {
-            console.error("[v0] Error parsing call logs JSON:", jsonError)
-          }
-        } else {
-          console.error("[v0] Failed to fetch call logs:", response.status)
+          setCallLogs(transformedLogs)
         }
       } catch (error) {
         console.error("[v0] Error fetching call logs:", error)
@@ -117,28 +111,17 @@ export default function CallLogsPage() {
       })
 
       if (response.ok) {
-        try {
-          const report = await response.json()
+        const report = await response.json()
 
-          // Store report in localStorage
-          const existingReports = JSON.parse(localStorage.getItem("call-reports") || "[]")
-          const updatedReports = [report, ...existingReports.filter((r: any) => r.id !== callId)]
-          localStorage.setItem("call-reports", JSON.stringify(updatedReports))
+        // Store report in localStorage
+        const existingReports = JSON.parse(localStorage.getItem("call-reports") || "[]")
+        const updatedReports = [report, ...existingReports.filter((r: any) => r.id !== callId)]
+        localStorage.setItem("call-reports", JSON.stringify(updatedReports))
 
-          // Navigate to the report
-          router.push(`/reports/${callId}`)
-        } catch (jsonError) {
-          console.error("[v0] Error parsing report JSON:", jsonError)
-          alert("Failed to parse report. Please try again.")
-        }
+        // Navigate to the report
+        router.push(`/reports/${callId}`)
       } else {
-        try {
-          const errorData = await response.json()
-          alert(errorData.error || "Failed to generate report. Please try again.")
-        } catch {
-          const errorText = await response.text()
-          alert(errorText || "Failed to generate report. Please try again.")
-        }
+        alert("Failed to generate report. Please try again.")
       }
     } catch (error) {
       console.error("[v0] Error generating report:", error)

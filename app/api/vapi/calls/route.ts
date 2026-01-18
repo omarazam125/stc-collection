@@ -24,14 +24,8 @@ export async function GET(request: Request) {
     })
 
     if (!response.ok) {
-      let errorMessage = "Failed to fetch calls"
-      try {
-        const errorData = await response.json()
-        errorMessage = errorData.message || errorMessage
-      } catch {
-        errorMessage = (await response.text()) || errorMessage
-      }
-      return NextResponse.json({ error: errorMessage }, { status: response.status })
+      const errorData = await response.json()
+      return NextResponse.json({ error: errorData.message || "Failed to fetch calls" }, { status: response.status })
     }
 
     const calls = await response.json()

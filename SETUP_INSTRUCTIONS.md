@@ -15,7 +15,7 @@ Go to your Vercel Project Settings → Environment Variables and add:
 
 2. **VAPI_ASSISTANT_ID** (Required)
    - Your Agent Omar assistant ID
-   - Example:`
+   - Example: `bd8d6522-1374-4a01-8430-131fb476308c`
    - You can find this in your VAPI dashboard URL
 
 3. **VAPI_BASE_URL** (Optional)
@@ -72,7 +72,7 @@ You can also find it in the URL when viewing your assistant:
 
 ### 3. Configure Agent Omar in VAPI
 
-1. Go to your assistant: https://dashboard.vapi.ai/assistants/bd8
+1. Go to your assistant: https://dashboard.vapi.ai/assistants/bd8d6522-1374-4a01-8430-131fb476308c
 2. Copy the **System Prompt** from `AGENT_OMAR_PROMPT.md`
 3. Paste it into the "System Prompt" field in VAPI
 4. Set the **First Message**: `Hello, this is Omar from STC. Am I speaking with {{customer_name}}?`

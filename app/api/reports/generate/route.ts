@@ -22,14 +22,7 @@ export async function POST(request: NextRequest) {
 
     if (!callResponse.ok) {
       console.error("[v0] Failed to fetch call details:", callResponse.status)
-      let errorMessage = "Failed to fetch call details"
-      try {
-        const errorData = await callResponse.json()
-        errorMessage = errorData.message || errorMessage
-      } catch {
-        errorMessage = (await callResponse.text()) || errorMessage
-      }
-      return NextResponse.json({ error: errorMessage }, { status: callResponse.status })
+      return NextResponse.json({ error: "Failed to fetch call details" }, { status: callResponse.status })
     }
 
     const callData = await callResponse.json()

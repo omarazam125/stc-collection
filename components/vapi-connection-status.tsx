@@ -28,18 +28,7 @@ export function VAPIConnectionStatus() {
     try {
       const response = await fetch("/api/vapi/status")
 
-      let data
-      try {
-        data = await response.json()
-      } catch (jsonError) {
-        console.error("[v0] Failed to parse status response:", jsonError)
-        setStatus({
-          isConnected: false,
-          isLoading: false,
-          error: "Invalid response from server",
-        })
-        return
-      }
+      const data = await response.json()
 
       if (response.ok && data.isConnected) {
         setStatus({
