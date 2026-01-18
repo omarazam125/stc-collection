@@ -32,17 +32,17 @@ IMPORTANT RULES FOR DYNAMIC VARIABLES:
 - Use the format {variable_name} for ALL dynamic variables (with curly braces)
 - Always include these base variables: {customer_name}, {phone_number}, {customer_email}
 - Add scenario-specific variables based on the description
-- Examples of variables: {account_balance}, {due_date}, {plan_name}, {account_id}, {issue_type}, {order_number}, {service_type}, {billing_amount}, etc.
+- Examples of variables: {account_balance}, {due_date}, {plan_name}, {account_id}, {issue_type}, {order_number}, {service_type}, {billing_amount},{Next_Billing_Payment_Date} etc.
 
 The prompt MUST include:
-1. Clear role definition (Omar from STC - الاتصالات السعودية)
+1. Clear role definition (Omar from STC)
 2. Customer information placeholders with {variable_name} format
 3. **IMPORTANT: Include a note that the agent should NEVER mention the customer's email during the call - it's for internal records only**
 4. Clear objectives and call flow based on the scenario
 5. A warm closing that thanks the customer for being an STC customer
 6. Professional guidelines for handling different situations
 7. Empathy and cultural sensitivity for Saudi Arabian customers
-8. Support for both Arabic and English
+8. Support only English the prompt only in English
 
 Make it comprehensive, professional, and ready to use. Format it clearly with sections.
 
