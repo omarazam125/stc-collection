@@ -37,8 +37,8 @@ export function DashboardSidebar() {
     <div className="flex h-screen w-64 flex-col border-r border-border bg-sidebar">
       <div className="flex h-24 items-center justify-center border-b border-border px-6">
         <img
-          src="https://upload.wikimedia.org/wikipedia/commons/e/e3/STC-01.svg"
-          alt="STC Logo"
+          src="https://images.shaffra.com/public/full-logo.svg"
+          alt="Shaffra Logo"
           className="h-16 w-auto"
         />
       </div>
